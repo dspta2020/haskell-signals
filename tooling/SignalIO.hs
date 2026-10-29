@@ -14,6 +14,7 @@ print_real_tone n samples                     -- function signature
           putStrLn "\nPRINTING SAMPLES:"
           print_real_samples_loop ([0 .. (n - 1)]) (take n samples) -- take ensures the loop takes no more than n samples
 
+-- basically prints out the actual sample values
 print_real_samples_loop :: [Int] -> [Double] -> IO ()
 print_real_samples_loop _ [] = return ()
 print_real_samples_loop (index:ind_rest) (sample:sample_rest) = do     -- now just print out the samples
