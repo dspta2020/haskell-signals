@@ -1,7 +1,9 @@
 module Main where
 
-import SignalIO (print_real_tone)
-import SignalGen (sine_wave_samples)
+import SignalIO (print_complex_tone)
+import SignalGen (complex_exponential_samples)
+-- import SignalIO (print_real_tone)
+-- import SignalGen (sine_wave_samples)
 
 -- define the amplitude
 amplitude :: Double
@@ -17,7 +19,9 @@ sample_rate = 20
 
 main :: IO ()
 main = do 
+  
   -- output
-  print_real_tone 30 (take 10 (sine_wave_samples sample_rate freq amplitude))
+  -- print_real_tone 30 (take 10 (sine_wave_samples sample_rate freq amplitude))
+  print_complex_tone 30 (take 10 (complex_exponential_samples sample_rate freq amplitude))
 
   
