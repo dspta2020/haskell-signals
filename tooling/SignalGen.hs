@@ -39,12 +39,12 @@ sine_wave_samples fs f a =
     phase_step = 2 * pi * f / fs
     sample i = a * cos (phase_step * fromIntegral i)
 
-
+-- same thing but with complex samples
 complex_exponential_samples
-  :: Double   -- sample rate in hz
-  -> Double   -- frequency in hz
-  -> Double   -- amplitude 
-  -> [Complex Double]
+  :: Double           -- sample rate in hz
+  -> Double           -- frequency in hz
+  -> Double           -- amplitude 
+  -> [Complex Double] -- output complex vector
 complex_exponential_samples fs f a = 
   [sample i | i <- [0 ..]] -- infinite list that is lazy evaluated.. can use `take` to get data from it has a weird feel to it for sure
   where
@@ -53,3 +53,4 @@ complex_exponential_samples fs f a =
     -- here is where the data type needs to be promoted
     sample :: Int -> Complex Double
     sample i = (a :+ 0) * cis (phase_step * fromIntegral i)
+

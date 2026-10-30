@@ -7,7 +7,7 @@ import Data.Complex
 
 -- guards are boolean checks while cases match patterns
 print_real_tone :: Int -> [Double] -> IO ()
-print_real_tone n samples                     -- function signature
+print_real_tone n samples                   -- function signature
   | n <= 0 = return ()                      -- if num samples to print is 0 return
   | otherwise =                             -- else do something
       case samples of
@@ -24,7 +24,7 @@ print_real_samples_loop (index:ind_rest) (sample:sample_rest) = do     -- now ju
   print_real_samples_loop ind_rest sample_rest
 
 print_complex_tone :: Int -> [Complex Double] -> IO ()
-print_complex_tone n samples                     -- function signature
+print_complex_tone n samples                -- function signature
   | n <= 0 = return ()                      -- if num samples to print is 0 return
   | otherwise =                             -- else do something
       case samples of
