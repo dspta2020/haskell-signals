@@ -1,3 +1,7 @@
+# dirs
+data
+
+# hs files
 dist
 dist-*
 cabal-dev
