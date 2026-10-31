@@ -1,7 +1,7 @@
 -- saving this code in a "module" makes it locally distributable
 -- here i explicitly provided an export list that only exposes `print_real_tone`
 -- and the real samples loop is only scoped locally to this file
-module SignalIO (print_real_tone, print_complex_tone) where
+module SignalIO (print_real_tone, print_complex_tone, print_complex_to_from) where
 
 import Data.Complex
 
@@ -39,3 +39,19 @@ print_complex_samples_loop _ [] = return ()
 print_complex_samples_loop (index:ind_rest) (sample:sample_rest) = do     -- now just print out the samples
   putStrLn ("Sample " ++ show index ++ ": " ++ show (realPart sample) ++ " + " ++ show (imagPart sample) ++ "i") 
   print_complex_samples_loop ind_rest sample_rest
+
+print_complex_to_from :: Int -> Int -> [Complex Double] -> IO ()
+print_complex_to_from to from samples
+  | from > to = do
+      putStrLn "@print_complex_to_from() :: `From` index greater than `To` index."
+  | start >= end = do
+      putStrLn "@print_complex_to_from() :: `start` index greater than `end` index."
+  | otherwise = do
+      putStrLn "\nPRINTING SAMPLES:"
+      print_complex_samples_loop
+        [start .. end - 1]
+        (take (end - start) (drop start samples))
+  where
+    sampleCount = length samples
+    start = max 0 (min from sampleCount)
+    end   = max 0 (min to sampleCount)
