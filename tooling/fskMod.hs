@@ -61,9 +61,9 @@ main :: IO ()
 main = do 
 
   -- printing out to the console first
-  printSamples modulatedSamples
-  printf "Total bytes in: %d\n" numBytesToTakeFrom
-  printf "Total samples in: %d\n" (numBytesToTakeFrom * 8 * upsampleFactor)
+  printSamples phi
+  printf "Total bytes in: %d\n" nBytes
+  printf "Total samples in: %d\n" (nBytes * 8 * upsampleFactor)
   putStrLn  "Done"
 
   where 
@@ -73,14 +73,15 @@ main = do
     deltaFreqHz = 5                                       -- 5 Hz sample deviation
     channelCenterHz = 5                                   -- Offset 5 Hz channel so '0' bits come out at DC and '1' bits come out at 10 Hz
     phaseIncrement = 2 * pi * deltaFreqHz / sampleRateHz 
-    numBytesToTakeFrom = 1
+    nBytes = 1
 
     -- configure the upsampler and phase rotations
     upsampler = upsampleBy upsampleFactor
     phaseRotator = applyPhaseRotation phaseIncrement
+    takeThese = flip take -- reconfigure take to use as an infix below which I think is more readable
 
-    -- basically compose all the functions into a single function that maps from bytes phase accumulation
+    -- basically compose all the functions into a single function that maps from bytes to a vector of accumulating phase
     bytesToSamplesPipeline = phaseAccumulator . phaseRotator . upsampler . bitsToAntipodalConverter . bytesToBitsConverter
 
-    -- cumulative sum to accumulate the phase 
-    modulatedSamples =  bytesToSamplesPipeline (take numBytesToTakeFrom bytesIn)
+    -- run the pipeline, eventually could take output and pass into a exp(1j * phi)
+    phi =  bytesToSamplesPipeline (bytesIn `takeThese` nBytes)
