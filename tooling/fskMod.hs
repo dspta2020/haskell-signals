@@ -63,7 +63,8 @@ main = do
   -- printing out to the console first
   printSamples iqComplex
   printf "Total bytes in: %d\n" nBytesFrom
-  printf "Total samples in: %d\n" (nBytesFrom * 8 * upsampleFactor)
+  printf "Total samples expected: %d\n" (nBytesFrom * 8 * upsampleFactor)
+  printf "Total samples calculated: %d\n" (length iqComplex)
   putStrLn  "Done"
 
   where 
