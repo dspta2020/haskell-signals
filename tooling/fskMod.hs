@@ -30,12 +30,12 @@ rotateSampleBy :: Double -> Int -> Double
 rotateSampleBy phaseIncr antipodalIn = phaseIncr * fromIntegral antipodalIn
 
 -- maps a vector of antipodal data points to a vector of rotating phase
-applyPhaseRotation :: [Int] -> Double -> [Double]
-applyPhaseRotation antipodalIn phaseIncr = map (rotateSampleBy phaseIncr) antipodalIn
+applyPhaseRotation :: Double -> [Int] -> [Double]
+applyPhaseRotation phaseIncr antipodalIn = map (rotateSampleBy phaseIncr) antipodalIn
 
 -- accumulate phase uses helper function `accumulate`
-accumulatePhase :: [Double] -> [Double]
-accumulatePhase samplesIn = accumulate 0 samplesIn
+phaseAccumulator :: [Double] -> [Double]
+phaseAccumulator samplesIn = accumulate 0 samplesIn
   -- Haskell design pattern are such that where blocks fit well for helper functions
   where
     -- in the base case an empty list comes in just return an empty list which denotes the 
@@ -62,8 +62,8 @@ main = do
 
   -- printing out to the console first
   printSamples modulatedSamples
-  printf "Total bytes in: %d\n" (length bytesIn)
-  printf "Total samples in: %d\n" ((length bytesIn) * upsampleFactor)
+  printf "Total bytes in: %d\n" numBytesToTakeFrom
+  printf "Total samples in: %d\n" (numBytesToTakeFrom * 8 * upsampleFactor)
   putStrLn  "Done"
 
   where 
@@ -73,12 +73,14 @@ main = do
     deltaFreqHz = 5                                       -- 5 Hz sample deviation
     channelCenterHz = 5                                   -- Offset 5 Hz channel so '0' bits come out at DC and '1' bits come out at 10 Hz
     phaseIncrement = 2 * pi * deltaFreqHz / sampleRateHz 
+    numBytesToTakeFrom = 1
 
-    -- configure the upsampler
+    -- configure the upsampler and phase rotations
     upsampler = upsampleBy upsampleFactor
+    phaseRotator = applyPhaseRotation phaseIncrement
 
-    -- basically compose all the functions into a single function that maps from bytes to upsampled antipodal
-    bytesToSamplesPipeline = upsampler . bitsToAntipodalConverter . bytesToBitsConverter
+    -- basically compose all the functions into a single function that maps from bytes phase accumulation
+    bytesToSamplesPipeline = phaseAccumulator . phaseRotator . upsampler . bitsToAntipodalConverter . bytesToBitsConverter
 
     -- cumulative sum to accumulate the phase 
-    modulatedSamples = accumulatePhase (applyPhaseRotation (bytesToSamplesPipeline (take 100 bytesIn)) phaseIncrement)
+    modulatedSamples =  bytesToSamplesPipeline (take numBytesToTakeFrom bytesIn)
