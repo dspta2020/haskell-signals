@@ -1,6 +1,7 @@
 module Main where
 
 import Text.Printf (printf)
+import Data.Complex
 
 -- An expression describing how bytes map to bits --
 byteToBits :: Int -> [Int]
@@ -42,7 +43,6 @@ phaseAccumulator samplesIn = accumulate 0 samplesIn
     -- end of the linked list object so this will terminate accumulatePhase's running list
     accumulate _   []     = []
     accumulate acc (x:xs) =
-
       -- let values are locally scoped so it is good for the accumulator which does not need to 
       -- be returned or input as an argument 
       let total = acc + x
@@ -51,17 +51,17 @@ phaseAccumulator samplesIn = accumulate 0 samplesIn
       in total : accumulate total xs
 
 -- prints the samples in order
-printSamples :: [Double] -> IO ()
+printSamples :: [Complex Double] -> IO ()
 printSamples [] = return ()
 printSamples (x : xs) = do
-  printf "%.3f\n" x
+  printf "% .3f + (% .3fi)\n" (realPart x) (imagPart x)
   printSamples xs
 
 main :: IO ()
-main = do 
+main = do
 
   -- printing out to the console first
-  printSamples phi
+  printSamples iqComplex
   printf "Total bytes in: %d\n" nBytesFrom
   printf "Total samples in: %d\n" (nBytesFrom * 8 * upsampleFactor)
   putStrLn  "Done"
@@ -78,9 +78,10 @@ main = do
     -- configure the upsampler and phase rotations
     upsampler = upsampleBy upsampleFactor
     phaseRotator = applyPhaseRotation phaseIncrement
+    exponentiation = map cis 
 
     -- basically compose all the functions into a single function that maps from bytes to a vector of accumulating phase
-    bytesToSamplesPipeline = phaseAccumulator . phaseRotator . upsampler . bitsToAntipodalConverter . bytesToBitsConverter
+    bytesToSamplesPipeline = exponentiation . phaseAccumulator . phaseRotator . upsampler . bitsToAntipodalConverter . bytesToBitsConverter
 
-    -- run the pipeline, eventually could take output and pass into a exp(1j * phi)
-    phi =  bytesToSamplesPipeline (take nBytesFrom bytesIn)
+    -- run the pipeline comes out as complex 
+    iqComplex =  bytesToSamplesPipeline (take nBytesFrom bytesIn)
