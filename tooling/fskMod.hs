@@ -36,7 +36,7 @@ applyPhaseRotation phaseIncr antipodalIn = map (rotateSampleBy phaseIncr) antipo
 
 -- accumulate phase uses helper function `accumulate`
 phaseAccumulator :: [Double] -> [Double]
-phaseAccumulator samplesIn = accumulate 0 samplesIn
+phaseAccumulator samplesIn = 0 : accumulate 0 samplesIn
   -- Haskell design pattern are such that where blocks fit well for helper functions
   where
     -- in the base case an empty list comes in just return an empty list which denotes the 
