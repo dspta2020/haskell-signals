@@ -52,20 +52,24 @@ accumulatePhase samplesIn = accumulate 0 samplesIn
 
 -- prints the samples in order
 printSamples :: [Double] -> IO ()
-printSamples [] = pure ()
+printSamples [] = return ()
 printSamples (x : xs) = do
   printf "%.3f\n" x
   printSamples xs
 
 main :: IO ()
 main = do 
+
+  -- printing out to the console first
   printSamples modulatedSamples
+  printf "Total bytes in: %d\n" (length bytesIn)
+  printf "Total samples in: %d\n" ((length bytesIn) * upsampleFactor)
   putStrLn  "Done"
 
   where 
-    bytesIn = [128, 255, 1, 5, 7, 32, 6, 193, 5] :: [Int] -- test bytes in 
-    upsampleFactor = 2                                    -- ends up as `u` samples per bit
-    sampleRateHz = 24                                     -- Bit rate 1 Hz 
+    bytesIn = [128, 255, 1, 5, 7, 32, 6, 193] :: [Int]    -- test bytes in 
+    upsampleFactor = 24                                   -- ends up as `u` samples per bit
+    sampleRateHz = 24                                     -- 1 Hz bit rate 
     deltaFreqHz = 5                                       -- 5 Hz sample deviation
     channelCenterHz = 5                                   -- Offset 5 Hz channel so '0' bits come out at DC and '1' bits come out at 10 Hz
     phaseIncrement = 2 * pi * deltaFreqHz / sampleRateHz 
@@ -76,11 +80,5 @@ main = do
     -- basically compose all the functions into a single function that maps from bytes to upsampled antipodal
     bytesToSamplesPipeline = upsampler . bitsToAntipodalConverter . bytesToBitsConverter
 
-    -- make antipodal data here
-    apData =  bytesToSamplesPipeline (take 1 bytesIn)
-
-    -- unmodulated samples 
-    unmodulatedSamples = applyPhaseRotation apData phaseIncrement
-
     -- cumulative sum to accumulate the phase 
-    modulatedSamples = accumulatePhase unmodulatedSamples
+    modulatedSamples = accumulatePhase (applyPhaseRotation (bytesToSamplesPipeline (take 100 bytesIn)) phaseIncrement)
