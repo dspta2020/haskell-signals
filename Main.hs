@@ -1,47 +1,22 @@
 module Main where
 
-import Data.Complex (Complex)
-
-import SignalIO (print_complex_tone, print_complex_to_from)
-import SignalGen (complex_exponential_samples)
--- import SignalIO (print_real_tone)
--- import SignalGen (sine_wave_samples)
-
--- define the amplitude
-amplitude :: Double
-amplitude = 5
-
--- output synthesis frequency 
-tone_freq_hz :: Double
-tone_freq_hz = 4
-
--- sample rate Hz
-fs :: Double
-fs = 20
-
--- make the iq data here 
-samples :: [Complex Double]
-samples = complex_exponential_samples fs tone_freq_hz amplitude
-
--- Okay going to start making my waveform class here
-data Waveform = Waveform
-  {
-    sample_rate_hz :: Double,
-    center_frequency_hz :: Double,
-    iq_complex :: [Complex Double]
-  }
+import FSKMod (fskModulator, FSKConfig(..), printSamples)
 
 main :: IO ()
 main = do 
+  -- print samples 
+  printSamples iqComplex
   
-  -- output
-  -- print_real_tone 30 (take 10 (sine_wave_samples fs tone_freq_hz amplitude))
-  -- print_complex_tone 30 (take 10 (complex_exponential_samples fs tone_freq_hz amplitude))
-  -- print_complex_to_from 50 10 (take 1000 (complex_exponential_samples fs tone_freq_hz amplitude))
+  where 
+    bytesIn = [128, 255, 1, 5, 7, 32, 6, 193]             -- test bytes in 
+    upsampleFactor = 24                                   -- ends up as `u` samples per bit
+    sampleRateHz = 24                                     -- 1 Hz bit rate 
+    deltaFreqHz = 5                                       -- 5 Hz sample deviation
+    channelCenterHz = 5                                   -- Offset 5 Hz channel so '0' bits come out at DC and '1' bits come out at 10 Hz
+    phaseIncrement = 2 * pi * deltaFreqHz / sampleRateHz  
 
-  -- make some IQ data here
-  let wf :: Waveform
-      wf = Waveform fs 0 samples
-  print_complex_tone 5000 (iq_complex wf)
-
-  
+    -- setup the modulator configs
+    configs = FSKConfig upsampleFactor phaseIncrement
+    
+    -- call the modulator 
+    iqComplex = fskModulator configs bytesIn

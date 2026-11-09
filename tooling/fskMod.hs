@@ -1,4 +1,4 @@
-module Main where
+module FSKMod (fskModulator, FSKConfig(..), printSamples) where
 
 import Text.Printf (printf)
 import Data.Complex
@@ -57,32 +57,19 @@ printSamples (x : xs) = do
   printf "% .3f + (% .3fi)\n" (realPart x) (imagPart x)
   printSamples xs
 
-main :: IO ()
-main = do
+-- FSK configs 
+data FSKConfig = FSKConfig
+  {upsampleFactor :: Int
+  , phaseIncrement :: Double
+  }
 
-  -- printing out to the console first
-  printSamples iqComplex
-  printf "Total bytes in: %d\n" nBytesFrom
-  printf "Total samples expected: %d\n" (nBytesFrom * 8 * upsampleFactor)
-  printf "Total samples calculated: %d\n" (length iqComplex)
-  putStrLn  "Done"
-
-  where 
-    bytesIn = [128, 255, 1, 5, 7, 32, 6, 193] :: [Int]    -- test bytes in 
-    upsampleFactor = 24                                   -- ends up as `u` samples per bit
-    sampleRateHz = 24                                     -- 1 Hz bit rate 
-    deltaFreqHz = 5                                       -- 5 Hz sample deviation
-    channelCenterHz = 5                                   -- Offset 5 Hz channel so '0' bits come out at DC and '1' bits come out at 10 Hz
-    phaseIncrement = 2 * pi * deltaFreqHz / sampleRateHz  
-    nBytesFrom = 1
-
+fskModulator :: FSKConfig -> [Int] -> [Complex Double]
+fskModulator configs bytesIn = bytesToSamplesPipeline bytesIn
+  where  
     -- configure the upsampler and phase rotations
-    upsampler = upsampleBy upsampleFactor
-    phaseRotator = applyPhaseRotation phaseIncrement
+    upsampler = upsampleBy (upsampleFactor configs)
+    phaseRotator = applyPhaseRotation (phaseIncrement configs)
     exponentiation = map cis 
 
     -- basically compose all the functions into a single function that maps from bytes to a vector of accumulating phase
     bytesToSamplesPipeline = exponentiation . phaseAccumulator . phaseRotator . upsampler . bitsToAntipodalConverter . bytesToBitsConverter
-
-    -- run the pipeline comes out as complex 
-    iqComplex =  bytesToSamplesPipeline (take nBytesFrom bytesIn)
